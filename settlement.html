@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settlement Breakdown Tool</title>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --line:rgba(2,6,23,.10);
+      --wine:#7f1d1d;
+      --wineSoft:#9f1239;
+      --ok:#16a34a;
+      --warn:#d97706;
+      --bad:#dc2626;
+      --shadow:0 12px 30px rgba(2,6,23,.10);
+      --radius:18px;
+      --mono:ui-monospace, Menlo, Consolas, monospace;
+      --sans:system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(1100px 700px at 20% 10%, rgba(127,29,29,.14), transparent 55%),
+        radial-gradient(900px 650px at 80% 20%, rgba(159,18,57,.12), transparent 60%),
+        var(--bg);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:28px;
+      color:var(--text);
+    }
+
+    .wrap{width:min(1100px,100%)}
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:16px;
+      align-items:flex-end;
+    }
+
+    h1{margin:0;font-size:26px}
+    .today{
+      font-family:var(--mono);
+      font-size:13px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:white;
+      box-shadow:var(--shadow);
+      white-space:nowrap;
+    }
+
+    .card{
+      background:rgba(255,255,255,.9);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      border:1px solid var(--line);
+      overflow:hidden;
+    }
+
+    .top{
+      padding:18px;
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .box{
+      border:1px dashed rgba(127,29,29,.35);
+      border-radius:16px;
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      background:rgba(255,255,255,.8);
+    }
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+
+    input, select{
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      font-family:var(--mono);
+      font-size:14px;
+      background:white;
+      min-width:220px;
+    }
+
+    select{min-width:120px}
+
+    .btn{
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(127,29,29,.35);
+      background:linear-gradient(180deg, rgba(127,29,29,.12), rgba(127,29,29,.05));
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .divider{height:1px;background:rgba(0,0,0,.08);border-radius:999px;margin:4px 0}
+
+    .status{
+      display:none;
+      padding:12px;
+      border-radius:14px;
+      font-family:var(--mono);
+      font-size:13px;
+      border:1px solid;
+      background:white;
+    }
+    .status.bad{border-color:var(--bad); color:#7f1d1d;}
+    .status.ok{border-color:var(--ok); color:#065f46;}
+    .status.warn{border-color:var(--warn); color:#92400e;}
+
+    .results{padding:18px;display:grid;gap:12px}
+
+    pre{
+      margin:0;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:white;
+      font-family:var(--mono);
+      font-size:13px;
+      white-space:pre-wrap;
+      line-height:1.35;
+    }
+
+    pre.customer{
+      color:var(--wine);
+      border-color:rgba(127,29,29,.3);
+    }
+
+    @media(max-width:900px){
+      .top{grid-template-columns:1fr}
+      .today{white-space:normal}
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>Settlement Breakdown Tool</h1>
+  </div>
+  <div class="today" id="todayBox"></div>
+</header>
+
+<section class="card">
+  <div class="top">
+
+    <div class="box">
+      <strong>Current Balance</strong>
+      <div class="row">
+        <div>
+          <input id="balance"/>
+        </div>
+
+        <div>
+          <label>Currency</label><br/>
+          <select id="currency">
+            <option value="USD">USD</option>
+          </select>
+        </div>
+
+        <button class="btn" id="goBtn">Enter</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <strong>Customer Offer</strong>
+      <div class="row">
+        <div>
+          <input id="customerOffer"/>
+        </div>
+        <button class="btn" id="offerBtn">Offer</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <strong>No. of Installments</strong>
+      <div class="row">
+        <div>
+          <select id="installments">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" selected>6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+
+        <button class="btn" id="refreshBtn">Refresh</button>
+      </div>
+
+      <div class="status" id="statusBox"></div>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+</section>
+</div>
+
+<script>
+  const today = new Date();
+
+  const balanceEl = document.getElementById('balance');
+  const offerEl = document.getElementById('customerOffer');
+  const instEl = document.getElementById('installments');
+  const results = document.getElementById('results');
+  const statusBox = document.getElementById('statusBox');
+  const currencyEl = document.getElementById('currency');
+
+  let baseBalanceCents = 0;
+
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function fmtDate(d){ return `${pad2(d.getMonth()+1)}/${pad2(d.getDate())}/${d.getFullYear()}`; }
+
+  document.getElementById('todayBox').textContent = `Today: ${fmtDate(today)}`;
+
+  function parseCents(v){
+    const cleaned = String(v || '').trim()
+      .replace(/\s/g,'')
+      .replace(/[$,]/g,'')
+      .replace(/[^\d.]/g,'');
+    if(!cleaned) return 0;
+    const n = Number(cleaned);
+    if(!Number.isFinite(n) || n <= 0) return 0;
+    return Math.round(n * 100);
+  }
+
+  function money(cents){
+    return new Intl.NumberFormat('en-US', { style:'currency', currency: currencyEl.value }).format(cents/100);
+  }
+
+  function showStatus(type, msg){
+    statusBox.className = `status ${type}`;
+    statusBox.style.display = 'block';
+    statusBox.textContent = msg;
+  }
+
+  function hideStatus(){
+    statusBox.style.display = 'none';
+  }
+
+  // WARNING: solo si installments > 6
+  function checkInstallmentsWarning(){
+    const n = Number(instEl.value);
+    if(n > 6){
+      showStatus('bad', `🚨 Approval REQUIRED: ${n} installments selected. Contact sup/lead.`);
+      return true;
+    }
+    return false;
+  }
+
+  // Divide en pagos iguales y reparte centavos
+  function buildInstallments(totalCents, n){
+    const base = Math.floor(totalCents / n);
+    let rem = totalCents - base * n;
+    const pays = [];
+    for(let i=0;i<n;i++){
+      const extra = rem > 0 ? 1 : 0;
+      pays.push(base + extra);
+      rem -= extra;
+    }
+    return pays;
+  }
+
+  function addMonthsKeepDay(date, monthsToAdd){
+    const y = date.getFullYear();
+    const m = date.getMonth();
+    const day = date.getDate();
+    const targetMonth = m + monthsToAdd;
+    const newY = y + Math.floor(targetMonth / 12);
+    const newM = ((targetMonth % 12) + 12) % 12;
+    const dim = new Date(newY, newM + 1, 0).getDate();
+    const newD = Math.min(day, dim);
+    return new Date(newY, newM, newD);
+  }
+
+  // ✅ Bloque genérico
+  function makeBlock(title, balanceCents, pctString, settlementCents, installments, isCustomer){
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const pays = buildInstallments(settlementCents, installments);
+
+    let t = `${title}
+Current Balance: ${money(balanceCents)}
+Settlement percentage: ${pctString}%
+Settlement amount: ${money(settlementCents)}
+No. of Installment: ${installments}
+Installment dates:
+`;
+
+    for(let i=0;i<installments;i++){
+      const due = addMonthsKeepDay(start, i);
+      t += `${fmtDate(due)} ${money(pays[i])}\n`;
+    }
+
+    const pre = document.createElement('pre');
+
+    if(isCustomer){
+      pre.className = 'customer';
+      pre.id = 'customerOfferBlock'; // id fijo para reemplazar
+    }
+
+    pre.textContent = t.trim();
+    return pre;
+  }
+
+  function removeCustomerOfferBlock(){
+    const existing = document.getElementById('customerOfferBlock');
+    if(existing) existing.remove();
+  }
+
+  // ✅ Inserta / reemplaza el customer offer SIEMPRE con subtítulo en MAYÚSCULAS
+  function upsertCustomerOfferBlock(){
+    const offerCents = parseCents(offerEl.value);
+    if(!offerCents) {
+      // si está vacío, removemos el bloque (opcional)
+      removeCustomerOfferBlock();
+      return;
+    }
+
+    const installments = Number(instEl.value);
+    const needsApproval = checkInstallmentsWarning(); // warning solo >6
+
+    // Calcula % solo si hay balance
+    let pctString = '0.00';
+    let balanceForPrint = 0;
+
+    if(baseBalanceCents){
+      balanceForPrint = baseBalanceCents;
+      pctString = ((offerCents / baseBalanceCents) * 100).toFixed(2);
+
+      // ⚠️ Prioridad: si installments > 6, no sobrescribir ese warning
+      if(!needsApproval){
+        const pct = Number(pctString);
+        if(pct < 20){
+          showStatus('bad', `🚨 Offer ${pctString}% below guideline. Sup/lead approval required.`);
+        } else {
+          showStatus('ok', `✅ Free to go (${pctString}%).`);
+        }
+      }
+    } else {
+      // Si no hay balance, solo aviso informativo (si no hay warning de installments)
+      if(!needsApproval){
+        showStatus('warn', 'ℹ️ PARA VALIDAR GUIDELINE (20%), PRIMERO INGRESA CURRENT BALANCE Y PRESIONA ENTER.');
+      }
+      balanceForPrint = 0;
+      pctString = '0.00';
+    }
+
+    // ✅ Subtítulo en mayúsculas arriba del breakdown
+    const subtitle = `***CUSTOMER OFFER***`;
+    const header = `***SETTLEMENT BREAKDOWN***`;
+
+    // Creamos texto combinando subtítulo + bloque
+    const block = makeBlock(header, balanceForPrint, pctString, offerCents, installments, true);
+    block.textContent = `${subtitle}\n${block.textContent}`;
+
+    // Reemplaza o inserta
+    const existing = document.getElementById('customerOfferBlock');
+    if(existing){
+      existing.replaceWith(block);
+    } else {
+      results.prepend(block);
+    }
+  }
+
+  // ✅ Genera 100% (Breakdown) + 90..20
+  function generatePercentOffers(){
+    results.innerHTML = '';
+    baseBalanceCents = parseCents(balanceEl.value);
+    if(!baseBalanceCents) return;
+
+    const installments = Number(instEl.value);
+
+    // Warning installments (solo >6). Si no, lo escondemos (pero ojo: customer offer puede poner otro status)
+    const needsApproval = checkInstallmentsWarning();
+    if(!needsApproval) hideStatus();
+
+    // 100% a meses (sin decir settlement breakdown, solo breakdown)
+    results.appendChild(
+      makeBlock('***BREAKDOWN***', baseBalanceCents, '100.00', baseBalanceCents, installments, false)
+    );
+
+    // Ofertas normales 90 -> 20
+    for(let p=90; p>=20; p-=10){
+      const settlement = Math.round(baseBalanceCents * (p/100));
+      results.appendChild(
+        makeBlock('***SETTLEMENT BREAKDOWN***', baseBalanceCents, p.toFixed(2), settlement, installments, false)
+      );
+    }
+
+    // ✅ Importante: si hay customer offer escrito, lo re-insertamos arriba y NO se pierde
+    upsertCustomerOfferBlock();
+  }
+
+  // ✅ Botón Offer: solo (re)crea el customer offer
+  function addCustomerOffer(){
+    // si no hay balance todavía, igual lo permite (imprime balance 0 y avisa)
+    upsertCustomerOfferBlock();
+  }
+
+  // Eventos
+  document.getElementById('goBtn').addEventListener('click', generatePercentOffers);
+  document.getElementById('refreshBtn').addEventListener('click', generatePercentOffers);
+  document.getElementById('offerBtn').addEventListener('click', addCustomerOffer);
+
+  // ✅ Al cambiar installments: regenerar TODO y reinsertar customer offer sin que desaparezca
+  instEl.addEventListener('change', () => {
+    // si ya existe un balance generado, regeneramos todo (para actualizar fechas/pagos)
+    const bal = parseCents(balanceEl.value);
+    if(bal > 0){
+      generatePercentOffers();
+    } else {
+      // si no hay balance, al menos actualizamos warning y el customer offer (si existe)
+      const needs = checkInstallmentsWarning();
+      if(!needs) hideStatus();
+      upsertCustomerOfferBlock();
+    }
+  });
+</script>
+</body>
+</html>
