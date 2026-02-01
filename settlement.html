@@ -60,6 +60,22 @@
       white-space:nowrap;
     }
 
+        .ver{
+      margin-left:10px;
+      font-size:12px;
+      font-family: var(--mono);
+      color: rgba(15,23,42,.45);
+      letter-spacing:.6px;
+      text-transform: uppercase;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(2,6,23,.10);
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(6px);
+      vertical-align: middle;
+    }
+
+
     .card{
       background:rgba(255,255,255,.9);
       border-radius:var(--radius);
@@ -387,7 +403,10 @@
     <!-- HEADER -->
     <header>
       <div>
-        <h1>Settlement Breakdown Tool</h1>
+        <h1>
+          Settlement Breakdown Tool
+          <span class="ver">2.0</span>
+        </h1>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center;">
