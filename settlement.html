@@ -740,12 +740,10 @@ Installment dates:
         pctString = '0.00';
       }
 
-      const subtitle = `***CUSTOMER OFFER***`;
       const header = `***SETTLEMENT BREAKDOWN***`;
 
+      // ✅ Customer offer block stays red (class customer) but WITHOUT printing "***CUSTOMER OFFER***"
       const newWrap = makeBlock(header, balanceForPrint, pctString, offerCents, installments, true);
-      const pre = newWrap.querySelector('pre');
-      pre.textContent = `${subtitle}\n${pre.textContent}`;
 
       const existingPre = document.getElementById('customerOfferBlock');
       if(existingPre){
@@ -965,9 +963,10 @@ Installment dates:
 
       let text = buildText(editing.title, editing.balanceCents, editing.pctString, editing.settlementCents, n, startDate, pays);
 
-      if(editing.isCustomer){
-        text = `***CUSTOMER OFFER***\n${text}`;
-      }
+      // ✅ Customer offer stays red in main block via CSS, but do NOT print "***CUSTOMER OFFER***" in corrected output
+      // if(editing.isCustomer){
+      //   text = `***CUSTOMER OFFER***\n${text}`;
+      // }
 
       editedOutput.textContent = text;
 
